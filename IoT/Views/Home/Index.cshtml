@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+</div>
+
+@section Scripts {
+    <script>
+        async function fetchAverage(endpoint) {
+            try {
+                const response = await fetch(`/api/IoTData/${endpoint}`);
+                const data = await response.json();
+                displayResult(data)
+            }
+            catch (error) {
+                displayError(error.message);
+            }
+        }
+        async function fetchCustomAverage() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            try {
+                const response = await fetch(`/api/IoTData/custom-average?startDate=${startDate}&endDate=${endDate}`);
+                if (!response.ok) {
+                    const errorMessage = await response.text(); // Read the error response
+                    throw new Error(errorMessage || `Error: ${response.statusText}`);
+                }
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                displayError(error.message);
+            }
+        }
+
+        function displayResult(data) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.textContent = JSON.stringify(data, null, 2);
+            resultContainer.style.color = 'black';
+        }
+
+        function displayError(message) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.textContent = message;
+            resultContainer.style.color = 'red';
+        }
+    </script>
+}
+<h2>IoT Data Averages</h2>
+
+<div>
+    <button onclick="fetchAverage('daily-average')">Daily Average</button>
+    <button onclick="fetchAverage('weekly-average')">Weekly Average</button>
+</div>
+
+<form onsubmit="event.preventDefault(); fetchCustomAverage();">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" required>
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" required>
+    <button type="submit">Get Custom Range Average</button>
+</form>
+
+<div id="resultContainer" style="margin-top: 20px; white-space: pre-wrap;"></div>
